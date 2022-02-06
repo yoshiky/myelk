@@ -1,0 +1,68 @@
+---
+version: '3'
+services:
+  kibana:
+    image: docker.elastic.co/kibana/kibana:7.16.3
+    links:
+      - elasticsearch
+    ports:
+      - 5601:5601
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+      - "TZ=Asia/Tokyo"
+      - I18N_LOCALE="ja-JP"
+      - ELASTICSEARCH_USERNAME=elastic
+      - ELASTICSEARCH_PASSWORD=password
+    networks:
+      - esnet
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.16.3
+    environment:
+      - discovery.type=single-node
+      - node.master=true
+      - node.data=true
+      - xpack.security.enabled=true
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
+      - "TZ=Asia/Tokyo"
+    #ulimits:
+    #  memlock:
+    #    soft: -1
+    #    hard: -1
+    # cap_add:
+    #   - IPC_LOCK
+    volumes:
+      - esdata1:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - esnet
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:7.16.3
+    volumes:
+      - "./data/logstash/pipeline:/usr/share/logstash/pipeline"
+      - "./data/log/httpd:/var/log/httpd"
+    environment:
+      - "TZ=Asia/Tokyo"
+      - xpack.monitoring.enabled=true
+      - xpack.monitoring.elasticsearch.username=elastic
+      - xpack.monitoring.elasticsearch.password=password
+    depends_on:
+      - elasticsearch
+    networks:
+      - esnet
+    # % dc run --rm logstash /usr/share/logstash/bin/logstash -f ./pipeline/logstash-apache.conf
+    # $ curl -u elastic:password -H 'Content-Type: application/x-ndjson' -XPOST 'elasticsearch:9200/shakespeare/doc/_bulk?pretty' --data-binary @shakespeare_6.0.json
+    # $ curl -O https://download.elastic.co/demos/kibana/gettingstarted/shakespeare_6.0.json
+
+volumes:
+  esdata1:
+    driver: local
+
+networks:
+  esnet:
+    driver: bridge
+
+#https://blog.cles.jp/item/12312
