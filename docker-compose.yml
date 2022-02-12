@@ -22,7 +22,7 @@ services:
       - discovery.type=single-node
       - node.master=true
       - node.data=true
-      - xpack.security.enabled=true
+      # - xpack.security.enabled=true
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms2048m -Xmx2048m"
       - "TZ=Asia/Tokyo"
@@ -46,9 +46,9 @@ services:
       - "./data/log/httpd:/var/log/httpd"
     environment:
       - "TZ=Asia/Tokyo"
-      - xpack.monitoring.enabled=true
-      - xpack.monitoring.elasticsearch.username=elastic
-      - xpack.monitoring.elasticsearch.password=password
+      # - xpack.monitoring.enabled=true
+      # - xpack.monitoring.elasticsearch.username=elastic
+      # - xpack.monitoring.elasticsearch.password=password
     depends_on:
       - elasticsearch
     networks:
